@@ -1,8 +1,8 @@
 # Route 53 DNSSec Implementation.   
 **Objectives:**  
-1. Understand and emphasise the role DNSSEC plays and how to implement it in Route 53. 
-2. Implement a chain of trust from the parent TLD zone to the domain zone.
-3. Examine the records returned before and after enabling DNSSec.
+1. Understand and emphasise the role DNSSec plays and how to implement it in Route 53. 
+2. Establish a chain of trust from the parent TLD zone to the domain zone.
+3. Examine records returned before and after enabling DNSSec. Observe the signed records returned after enabling DNSSec.
 
 First let us examine some core concepts and players in DNS.  
 When a client tries to connect to a website or load an application, Domain Name System is what helps the client determine the IP address of the website/application. This happens via what is called 'Walking the DNS tree' where the DNS resolver on the client's computer performs multiple queries until it gets the IP address of the website.  
@@ -12,19 +12,19 @@ As a result of the DNS query, the user gets either a cached or non authoritative
 **DNSSec ensures 2 things, which are critical for security**. 
 1. **Authenticity** of the record. It helps validate that the record returned is authentic for that domain. 
 2. **Integrity** of the record. It ensures that the record has not been altered or tampered with. 
-Without DNSSEC, a bad actor could poison the DNS record which could result the client being redirected to a malicious website.  In an organization it could cause user traffic to be hijacked. 
-DNSSec achieves this by a cryptographic signing process which the resolver/client can use to validate. This process follows a chain of trust where the zone for that domain is trusted by the TLD zone which in turn is trusted by the Root Zone. The Root Zone is implicitly and universally trusted. The Root signing ceremony happens at regular intervals where security officers perform the signing in an extremely secure, supervised and audited ceremony. This ensures the security of the keys generated in the Root Zone which are used to digitally sign the keys of the TLDs which in turn sign the keys of the hosted zone. 
+Without DNSSec, a bad actor could poison the DNS record which could result in the client being redirected to a malicious website.  In an organization it could cause user traffic to be hijacked. 
+DNSSec achieves this by a cryptographic signing process which the resolver/client can use to validate. This process follows a chain of trust where the zone for that domain is trusted by the TLD zone which in turn is trusted by the Root Zone. The Root Zone is implicitly and universally trusted. The Root Key Signing ceremony happens at regular intervals where security officers perform the signing in an extremely secure, supervised and audited process. This ensures the security of the keys generated in the Root Zone which are used to digitally sign the keys of the TLDs which in turn sign the keys of the hosted zone. 
 
 **Keys involved in DNSSec:**  
-Let's start from the individual hosted zone. Every DNS zone has a Zone signing key which has a public and corresponding private portion. When DNSSec is enabled, DNS clients get an RRSIG record in addition to the DNS record which they can use to validate the authenticity of the DNS Record. This RRSIG record is a digitally signed DNS record, signed using the private portion of the Zone key. The public portion of the Zone signing key is stored in the DNS Key record of the zone, and the private portion is saved separate from the zone by the zone administrator. The DNS Key stores the public key of the Zone key. DNS Key also stores another important public key, the **Key Signing Key**. 
-
-The DNS key of the zone is then signed by the private portion of the Key Signing key to create the RRSIG of the DNS key record. 
-Using this record, clients can validate if the DNS key of the zone itself is valid. Now to establish a chain of trust, the public part of the Key Signing key is provided to the parent TLD zone as a Delegated Signer (DS) record. This is then digitally signed by the Zone signing key of the TLD zone. The validity of the TLD Zone signing key can be ensured because it is trusted by the Root zone. The Root zone has a DS record of the TLD Zone signing key key which it digitally signs using it's Key Signing Key. The Key Signing Key of the Root zone is generated during the signing ceremony. To be really specific, it is not the key generated during the ceremony but is derived from the secure key. 
+>Let's start from the individual hosted zone. 
+Every DNS zone has a Zone signing key which has a public and corresponding private portion. When DNSSec is enabled, DNS clients get an RRSIG record in addition to the DNS record which they can use to validate the authenticity of the DNS Record. This RRSIG record is a digitally signed DNS record, signed using the private portion of the Zone key.  
+The public portion of the Zone signing key is stored in the DNS Key record of the zone, and the private portion is saved separate from the zone by the zone administrator. The DNS Key stores the public key of the Zone key. DNS Key also stores another important public key, the **Key Signing Key**.  
+The DNS key of the zone is then signed by the private portion of the Key Signing key to create the RRSIG of the DNS key record. Using this record, clients can validate if the DNS key of the zone itself is valid. Now to establish a chain of trust, the public part of the Key Signing key is provided to the parent TLD zone as a Delegated Signer (DS) record. This is then digitally signed by the Zone signing key of the TLD zone. The validity of the TLD Zone signing key can be ensured because it is trusted by the Root zone. The Root zone has a DS record of the TLD Zone signing key key which it digitally signs using it's Key Signing Key.  The Key Signing Key of the Root zone is generated during a securely audited Root Key Signing Ceremony. To be really specific, it is not the key generated during the ceremony but is derived from the secure key. 
 
 ## Steps:
 1. Create a Stack with one click deployment which will provision a corporate website. Create a DNS record in the public hosted zone for the domain. [Details](#Step1)
-2. Perform DNS query before enabling DNSSEC in the zone for the domain. [Details](#Step2)
-3. Enable DNSSEC via AWS admin console. [Details](#Step 3)
+2. Perform DNS query before enabling DNSSec in the zone for the domain. [Details](#Step2)
+3. Enable DNSSec via AWS admin console. [Details](#Step 3)
 4. Establish a chain of trust from the TLD .net zone to our zone. [Details](#Step4)
 5. Perform DNS query after enabling DNSSec and observe the signed records returned. [Details](#Step5)
 6. Cleanup [Details](#Step6)
@@ -35,15 +35,15 @@ Create the VPC using the Cloudformation Template [here](https://github.com/veeCa
 In Route 53, create an A record pointing to the IP address of the EC2 instance. 
 ![Alt text](../03-Route53DNSSECImplementation/images/publicZone.png)  
 
-
 Test it.  
 ![Alt text](../03-Route53DNSSECImplementation/images/Step4-1.png) 
 # Step 2:  
-Perform DNS query before enabling DNSSEC in the zone for the domain. 
+Perform DNS query before enabling DNSSec in the zone for the domain. 
 ![Alt text](../03-Route53DNSSECImplementation/images/digDnsA.png) 
 # Step 3:  
 Enable DNSSec via Admin Console. 
 ![Alt text](../03-Route53DNSSECImplementation/images/DNSSecEnable.png) 
+
 Create a Key Signing Key. This is a KMS CMK. 
 ![Alt text](../03-Route53DNSSECImplementation/images/createKSK.png)
 
@@ -100,10 +100,13 @@ We should get an email notification when this has been completed in the TLD zone
 Received notification. 
 ![Alt text](../03-Route53DNSSECImplementation/images/DeleteDSEmail.png) 
 
-Now we can disable DNSSEC. 
+Now we can disable DNSSec. 
 ![Alt text](../03-Route53DNSSECImplementation/images/disableDNSSEC.png) 
 
-After this is done we can schedule a deletion of the KMS key.
+After this is done we can schedule a deletion of the KMS key.  
+![Alt text](../03-Route53DNSSECImplementation/images/scheduleKeyDeletion.png) 
+
+The key is scheduled to be deleted within the period specified.  
 ![Alt text](../03-Route53DNSSECImplementation/images/pendingDeletion.png) 
 
 # Summary: 
@@ -113,7 +116,7 @@ After this is done we can schedule a deletion of the KMS key.
 3. How to view the DS records in the parent TLD zone. 
 
 **Mistakes?**
-1. I am not aware of any mistakes, however word of caution: disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site. 
+1. I am not aware of any mistakes however, word of caution: **Disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site**. 
 
 **TODO**  
 CloudFront and DNS integration.
