@@ -24,7 +24,7 @@ The DNS key of the zone is then signed by the private portion of the Key Signing
 ## Steps:
 1. Create a Stack with one click deployment which will provision a corporate website. Create a DNS record in the public hosted zone for the domain. [Details](#Step1)
 2. Perform DNS query before enabling DNSSec in the zone for the domain. [Details](#Step2)
-3. Enable DNSSec via AWS admin console. [Details](#Step 3)
+3. Enable DNSSec via AWS admin console. [Details](#Step3)
 4. Establish a chain of trust from the TLD .net zone to our zone. [Details](#Step4)
 5. Perform DNS query after enabling DNSSec and observe the signed records returned. [Details](#Step5)
 6. Cleanup [Details](#Step6)
