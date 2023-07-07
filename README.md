@@ -12,8 +12,8 @@ As a result of the DNS query, the user gets either a cached or non authoritative
 **DNSSec ensures 2 things, which are critical for security**. 
 1. **Authenticity** of the record. It helps validate that the record returned is authentic for that domain. 
 2. **Integrity** of the record. It ensures that the record has not been altered or tampered with. 
-Without DNSSec, a bad actor could poison the DNS record which could result in the client being redirected to a malicious website.  In an organization it could cause user traffic to be hijacked. 
-DNSSec achieves this by a cryptographic signing process which the resolver/client can use to validate. This process follows a chain of trust where the zone for that domain is trusted by the TLD zone which in turn is trusted by the Root Zone. The Root Zone is implicitly and universally trusted. The Root Key Signing ceremony happens at regular intervals where security officers perform the signing in an extremely secure, supervised and audited process. This ensures the security of the keys generated in the Root Zone which are used to digitally sign the keys of the TLDs which in turn sign the keys of the hosted zone. 
+Without DNSSec, a bad actor could poison the DNS record which could result in the client being redirected to a malicious website.  In an organization it could cause user traffic to be hijacked.<br>
+DNSSec achieves this by a **cryptographic signing process** where it digitally signs the record using a key.  The resolver/client can validate it to ensure the authenticity of the record. This process follows a chain of trust where the zone for that domain is trusted by the TLD zone which in turn is trusted by the Root Zone. The Root Zone is implicitly and universally trusted. The Root Key Signing ceremony happens at regular intervals where security officers perform the signing in an extremely secure, supervised and audited process. This ensures the security of the keys generated in the Root Zone which are used to digitally sign the keys of the TLDs which in turn sign the keys of the hosted zone. 
 
 **Keys involved in DNSSec:**  
 >Let's start from the individual hosted zone. 
@@ -37,7 +37,8 @@ In Route 53, create an A record pointing to the IP address of the EC2 instance.
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/publicZone.png) 
 
 Test it.  
-![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/Step4-1.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/Step4-1.png)  
+Bird graphic courtesy of freepik.
 # Step 2:  
 Perform DNS query before enabling DNSSec in the zone for the domain. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/digDnsA.png) 
@@ -120,4 +121,5 @@ The key is scheduled to be deleted within the period specified.
 1. I am not aware of any mistakes however, word of caution: **Disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site**. ***DNSSec adds an extra layer on top of DNS, for security - so why would we want to disable it? Would we disable it temporarily for key rotation?***  
 
 **TODO**  
-1. Research, find out more about use cases for disabling DNSSec and under what circumstances would it need to be done. 
+1. Research, find out more about use cases for disabling DNSSec and under what circumstances would it need to be done. <br>
+   Bird graphic courtesy of freepik <img src="https://github.com/veeCan54/00-EnvelopeEncryptionHandsOn/blob/main/images/freepic.png" width="70" height="10" />
