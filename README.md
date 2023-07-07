@@ -33,44 +33,44 @@ The DNS key of the zone is then signed by the private portion of the Key Signing
 # Step 1:  
 Create the VPC using the Cloudformation Template [here](https://github.com/veeCan54/03-SplitHorizonDNS/blob/main/files/01-SingleCustomVPCWithPublicSubnet.yml).  
 In Route 53, create an A record pointing to the IP address of the EC2 instance. 
-![Alt text](../03-Route53DNSSECImplementation/images/publicZone.png)  
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/publicZone.png) 
 
 Test it.  
-![Alt text](../03-Route53DNSSECImplementation/images/Step4-1.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/Step4-1.png) 
 # Step 2:  
 Perform DNS query before enabling DNSSec in the zone for the domain. 
-![Alt text](../03-Route53DNSSECImplementation/images/digDnsA.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/digDnsA.png) 
 # Step 3:  
 Enable DNSSec via Admin Console. 
-![Alt text](../03-Route53DNSSECImplementation/images/DNSSecEnable.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DNSSecEnable.png) 
 
 Create a Key Signing Key. This is a KMS CMK. 
-![Alt text](../03-Route53DNSSECImplementation/images/createKSK.png)
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/createKSK.png)
 
 This also means that we now have a Zone signing key. The KSK will be used to sign the Zone signing key.  
 The blurb below shows that this is complete.
-![Alt text](../03-Route53DNSSECImplementation/images/DNSEnabled2.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DNSEnabled2.png) 
 
 Now when running the dig command, the DNSKEY record is returned. 
 The record with **256** represents the **Zone signing Key** and the record with **257** represents the **Key Signing Key**. 
 We also have the RRSIG of the DNSKEY which is the DNSKEY record digitally signed by the private portion of the Key Signing Key.  Resolvers can verify the validity of the DNSKEY record to make sure it is valid.
-![Alt text](../03-Route53DNSSECImplementation/images/afterEnabling.png)
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/afterEnabling.png)
 # Step 4:  
 Establish a chain of trust by adding a Delegated Signer record to the TLD zone for .net.  
 For this we need the DS Record information from our Route 53 registrar. 
-![Alt text](../03-Route53DNSSECImplementation/images/DSRecordInformation.png)  
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DSRecordInformation.png)  
 
 If the domain was registered with Route 53, pick this. If it was registered via another registrar, select the relevant information.  
-![Alt text](../03-Route53DNSSECImplementation/images/DSRecordInformation2.png)
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DSRecordInformation2.png)
 
 Now add the algorithm and the public key. 
-![Alt text](../03-Route53DNSSECImplementation/images/ADDKSK.png)
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/ADDKSK.png)
 
 The blurb shows the add request is in progress. We should get an email notification.
-![Alt text](../03-Route53DNSSECImplementation/images/DSRequested.png)
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DSRequested.png)
 
 Email notification has been received. So now a Delegated Signer record has been added to the .net TLD for our domain.
-![Alt text](../03-Route53DNSSECImplementation/images/KSKEmail.png)
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/KSKEmail.png)
 
 Now let's try to view the DS record on the TLD, the .net domain.
 For this, we need to get the name servers for the .net TLD as below:  
@@ -80,34 +80,34 @@ Then query one of the servers for a DS record for this zone as below:
 ```dig birds4ever.net DS @<nameserver>```  
 
 We see the DS record that was successfully added. **This means that a chain of trust has been established from the .net TLD to our zone.**  
-![Alt text](../03-Route53DNSSECImplementation/images/DSRecordAdded.png)  
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DSRecordAdded.png)  
 # Step 5: 
 Now when ```dig www.birds4ever.net A ``` returns just the A record, 
-![Alt text](../03-Route53DNSSECImplementation/images/digDnsA.png)  
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/digDnsA.png)  
 
 The query ```dig www.birds4ever.net A +dnssec``` with dnssec flag returns RRSIG record. 
-![Alt text](../03-Route53DNSSECImplementation/images/DNSEnabledRRSIG2.png)  
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DNSEnabledRRSIG2.png)  
 The RRSIG record is the digitally signed A record, signed with the private part of the Zone signing key. 
 This record can be verified by the DNS key which contains the public part of the Zone signing key. 
 # Step 6: 
 Cleanup:  
 First the DS record needs to be removed from the parent zone. 
-![Alt text](../03-Route53DNSSECImplementation/images/DeleteDNSSecKey.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DeleteDNSSecKey.png) 
 
 We should get an email notification when this has been completed in the TLD zone for .net.
-![Alt text](../03-Route53DNSSECImplementation/images/requestToDelete.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/requestToDelete.png) 
 
 Received notification. 
-![Alt text](../03-Route53DNSSECImplementation/images/DeleteDSEmail.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DeleteDSEmail.png) 
 
 Now we can disable DNSSec. 
-![Alt text](../03-Route53DNSSECImplementation/images/disableDNSSEC.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/disableDNSSEC.png) 
 
 After this is done we can schedule a deletion of the KMS key.  
-![Alt text](../03-Route53DNSSECImplementation/images/scheduleKeyDeletion.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/scheduleKeyDeletion.png) 
 
 The key is scheduled to be deleted within the period specified.  
-![Alt text](../03-Route53DNSSECImplementation/images/pendingDeletion.png) 
+![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/pendingDeletion.png) 
 
 # Summary: 
 **What did I learn?**
