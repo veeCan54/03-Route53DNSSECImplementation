@@ -1,0 +1,128 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creates a Custom VPC with 2 Public subnets and an EC2 instance in one subnet.
+Parameters:
+  LatestAmiId:
+    Description: AMI for EC2 (default is latest AmaLinux2)
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+Resources:
+  MyCustomVPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: MyCustomVPC
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+
+  VPCGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref MyCustomVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyCustomVPC
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+
+  PublicSubnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref MyCustomVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+
+  RouteTable1:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref MyCustomVPC
+
+  Route1:
+    Type: 'AWS::EC2::Route'
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref RouteTable1
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  Subnet1RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref RouteTable1
+
+  Subnet2RouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref RouteTable1
+
+  InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Roles:
+        - !Ref MyRole
+
+  MyRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+
+  MyInstance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: t2.micro
+      IamInstanceProfile: !Ref InstanceProfile
+      SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: MyInstance
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash -xe
+          yum -y update
+          yum install -y httpd wget git
+          cd /tmp
+          git clone https://github.com/veeCan54/00-AutomationPractice.git 
+          cp ./00-AutomationPractice/corporate_website/* /var/www/html
+          usermod -a -G apache ec2-user   
+          chown -R ec2-user:apache /var/www
+          chmod 2775 /var/www
+          find /var/www -type d -exec chmod 2775 {} \;
+          find /var/www -type f -exec chmod 0664 {} \;
+          systemctl enable httpd
+          systemctl start httpd
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+
+  InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Allow SSH and HTTP access
+      VpcId: !Ref MyCustomVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0      

@@ -1,0 +1,50 @@
+{
+    "Version": "2012-10-17",
+    "Id": "dnssec-policy",
+    "Statement": [
+        {
+            "Sid": "Enable IAM User Permissions",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::12345678900:root"
+            },
+            "Action": "kms:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "Allow Route 53 DNSSEC Service",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "dnssec-route53.amazonaws.com"
+            },
+            "Action": [
+                "kms:DescribeKey",
+                "kms:GetPublicKey",
+                "kms:Sign"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:SourceAccount": "12345678900"
+                },
+                "ArnLike": {
+                    "aws:SourceArn": "arn:aws:route53:::hostedzone/*"
+                }
+            }
+        },
+        {
+            "Sid": "Allow Route 53 DNSSEC to CreateGrant",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "dnssec-route53.amazonaws.com"
+            },
+            "Action": "kms:CreateGrant",
+            "Resource": "*",
+            "Condition": {
+                "Bool": {
+                    "kms:GrantIsForAWSResource": "true"
+                }
+            }
+        }
+    ]
+}
