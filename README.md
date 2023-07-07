@@ -28,6 +28,7 @@ The DNS key of the zone is then signed by the private portion of the Key Signing
 4. Establish a chain of trust from the TLD .net zone to our zone. [Details](#Step4)
 5. Perform DNS query after enabling DNSSec and observe the signed records returned. [Details](#Step5)
 6. Cleanup [Details](#Step6)
+7. Summary & Lessons learnt [Details](#summary)
 
 # Implementation steps:
 # Step 1:  
@@ -109,14 +110,15 @@ After this is done we can schedule a deletion of the KMS key.
 The key is scheduled to be deleted within the period specified.  
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/pendingDeletion.png) 
 
-# Summary: 
+# Summary:<a name="summary"></a> 
 **What did I learn?**
 1. How DNSSec works, what are the different keys involved.
 2. How to enable DNSSec in a zone and establish a chain of trust.
 3. How to view the DS records in the parent TLD zone. 
 
 **Mistakes?**
-1. I am not aware of any mistakes however, word of caution: **Disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site**. 
+1. I am not aware of any mistakes however, word of caution: **Disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site**. ***DNSSec adds an extra layer on top of DNS, for security so why would we want to disable it? Would we disable it temporarily for key rotation?***  
 
 **TODO**  
+1. Research, find out more about use cases for disabling DNSSec and under what circumstances would it need to be done. 
 CloudFront and DNS integration.
