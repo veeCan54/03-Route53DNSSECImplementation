@@ -117,8 +117,7 @@ The key is scheduled to be deleted within the period specified.
 3. How to view the DS records in the parent TLD zone. 
 
 **Mistakes?**
-1. I am not aware of any mistakes however, word of caution: **Disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site**. ***DNSSec adds an extra layer on top of DNS, for security so why would we want to disable it? Would we disable it temporarily for key rotation?***  
+1. I am not aware of any mistakes however, word of caution: **Disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site**. ***DNSSec adds an extra layer on top of DNS, for security - so why would we want to disable it? Would we disable it temporarily for key rotation?***  
 
 **TODO**  
 1. Research, find out more about use cases for disabling DNSSec and under what circumstances would it need to be done. 
-CloudFront and DNS integration.
