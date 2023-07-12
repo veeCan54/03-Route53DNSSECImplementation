@@ -31,7 +31,7 @@ The DNS key of the zone is then signed by the private portion of the Key Signing
 7. Summary & Lessons learnt [Details](#summary)
 
 # Implementation steps:
-# Step 1:  
+# Step1:  
 Create the VPC using the Cloudformation Template [here](https://github.com/veeCan54/03-SplitHorizonDNS/blob/main/files/01-SingleCustomVPCWithPublicSubnet.yml).  
 In Route 53, create an A record pointing to the IP address of the EC2 instance. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/publicZone.png) 
@@ -39,10 +39,10 @@ In Route 53, create an A record pointing to the IP address of the EC2 instance.
 Test it.  
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/Step4-1.png)  
 Bird graphic courtesy of freepik.
-# Step 2:  
+# Step2:  
 Perform DNS query before enabling DNSSec in the zone for the domain. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/digDnsA.png) 
-# Step 3:  
+# Step3:  
 Enable DNSSec via Admin Console. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DNSSecEnable.png) 
 
@@ -57,7 +57,7 @@ Now when running the dig command, the DNSKEY record is returned.
 The record with **256** represents the **Zone signing Key** and the record with **257** represents the **Key Signing Key**. 
 We also have the RRSIG of the DNSKEY which is the DNSKEY record digitally signed by the private portion of the Key Signing Key.  Resolvers can verify the validity of the DNSKEY record to make sure it is valid.
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/afterEnabling.png)
-# Step 4:  
+# Step4:  
 Establish a chain of trust by adding a Delegated Signer record to the TLD zone for .net.  
 For this we need the DS Record information from our Route 53 registrar. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DSRecordInformation.png)  
@@ -83,7 +83,7 @@ Then query one of the servers for a DS record for this zone as below:
 
 We see the DS record that was successfully added. **This means that a chain of trust has been established from the .net TLD to our zone.**  
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DSRecordAdded.png)  
-# Step 5: 
+# Step5: 
 Now when ```dig www.birds4ever.net A ``` returns just the A record, 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/digDnsA.png)  
 
@@ -91,7 +91,7 @@ The query ```dig www.birds4ever.net A +dnssec``` with dnssec flag returns RRSIG 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DNSEnabledRRSIG2.png)  
 The RRSIG record is the digitally signed A record, signed with the private part of the Zone signing key. 
 This record can be verified by the DNS key which contains the public part of the Zone signing key. 
-# Step 6: 
+# Step6: 
 Cleanup:  
 First the DS record needs to be removed from the parent zone. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DeleteDNSSecKey.png) 
@@ -121,5 +121,5 @@ The key is scheduled to be deleted within the period specified.
 1. I am not aware of any mistakes however, word of caution: **Disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site**. ***DNSSec adds an extra layer on top of DNS, for security - so why would we want to disable it? Would we disable it temporarily for key rotation?***  
 
 **TODO**  
-1. Research, find out more about use cases for disabling DNSSec and under what circumstances would it need to be done. <br>
+1. Research use cases for disabling DNSSec and under what circumstances would it need to be done. <br>
    Bird graphic courtesy of freepik <img src="https://github.com/veeCan54/00-EnvelopeEncryptionHandsOn/blob/main/images/freepic.png" width="70" height="10" />
