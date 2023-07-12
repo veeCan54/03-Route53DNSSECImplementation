@@ -32,7 +32,7 @@ The DNS key of the zone is then signed by the private portion of the Key Signing
 
 # Implementation steps:
 # Step1:  
-Create the VPC using the Cloudformation Template [here](https://github.com/veeCan54/03-SplitHorizonDNS/blob/main/files/01-SingleCustomVPCWithPublicSubnet.yml).  
+Create the VPC using the Cloudformation Template [here](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/files/01-SingleCustomVPCWithPublicSubnet.yml).  
 In Route 53, create an A record pointing to the IP address of the EC2 instance. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/publicZone.png) 
 
