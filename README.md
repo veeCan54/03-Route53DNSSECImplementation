@@ -31,7 +31,7 @@ The DNS key of the zone is then signed by the private portion of the Key Signing
 7. Summary & Lessons learnt [Details](#summary)
 
 # Implementation steps:
-# Step1:  
+# Step1:<a name="Step1"></a>  
 Create the VPC using the Cloudformation Template [here](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/files/01-SingleCustomVPCWithPublicSubnet.yaml).  
 
 In Route 53, create an A record pointing to the IP address of the EC2 instance. 
@@ -40,10 +40,10 @@ In Route 53, create an A record pointing to the IP address of the EC2 instance.
 Test it.  
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/Step4-1.png)  
 Bird graphic courtesy of freepik.
-# Step2:  
+# Step2:<a name="Step2"></a>  
 Perform DNS query before enabling DNSSec in the zone for the domain. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/digDnsA.png) 
-# Step3:  
+# Step3:<a name="Step3"></a>
 Enable DNSSec via Admin Console. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DNSSecEnable.png) 
 
@@ -58,7 +58,7 @@ Now when running the dig command, the DNSKEY record is returned.
 The record with **256** represents the **Zone signing Key** and the record with **257** represents the **Key Signing Key**. 
 We also have the RRSIG of the DNSKEY which is the DNSKEY record digitally signed by the private portion of the Key Signing Key.  Resolvers can verify the validity of the DNSKEY record to make sure it is valid.
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/afterEnabling.png)
-# Step4:  
+# Step4:<a name="Step4"></a>  
 Establish a chain of trust by adding a Delegated Signer record to the TLD zone for .net.  
 For this we need the DS Record information from our Route 53 registrar. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DSRecordInformation.png)  
@@ -84,7 +84,7 @@ Then query one of the servers for a DS record for this zone as below:
 
 We see the DS record that was successfully added. **This means that a chain of trust has been established from the .net TLD to our zone.**  
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DSRecordAdded.png)  
-# Step5: 
+# Step5:<a name="Step5"></a>
 Now when ```dig www.birds4ever.net A ``` returns just the A record, 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/digDnsA.png)  
 
@@ -92,7 +92,7 @@ The query ```dig www.birds4ever.net A +dnssec``` with dnssec flag returns RRSIG 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DNSEnabledRRSIG2.png)  
 The RRSIG record is the digitally signed A record, signed with the private part of the Zone signing key. 
 This record can be verified by the DNS key which contains the public part of the Zone signing key. 
-# Step6: 
+# Step6:<a name="Step6"></a>
 Cleanup:  
 First the DS record needs to be removed from the parent zone. 
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/DeleteDNSSecKey.png) 
