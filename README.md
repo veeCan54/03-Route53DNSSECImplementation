@@ -113,14 +113,14 @@ The key is scheduled to be deleted within the period specified.
 ![Alt text](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/images/pendingDeletion.png) 
 
 # Summary:<a name="summary"></a> 
-**What did I learn?**
+**Concepts:**
 1. How DNSSec works, what are the different keys involved.
 2. How to enable DNSSec in a zone and establish a chain of trust.
 3. How to view the DS records in the parent TLD zone. 
 
-**Mistakes?**
-1. I am not aware of any mistakes however, word of caution: **Disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site**. ***DNSSec adds an extra layer on top of DNS, for security - so why would we want to disable it? Would we disable it temporarily for key rotation?***  
+From AWS Documentation: **Disabling DNSSec in a production environment needs to be done after taking into consideration the TTL of the parent zone. Otherwise it could cause disruption of traffic to our site**.  
+***DNSSec adds an extra layer on top of DNS, for security - so why would we want to disable it? Probably we might want to temporarily disable it for key rotation?***  
 
-**TODO**  
-1. Research use cases for disabling DNSSec and under what circumstances would it need to be done. <br>
+**TODO:**  
+1. Research use cases for disabling DNSSec and under what circumstances would it be done. <br>
    Bird graphic courtesy of freepik <img src="https://github.com/veeCan54/00-EnvelopeEncryptionHandsOn/blob/main/images/freepic.png" width="70" height="10" />
