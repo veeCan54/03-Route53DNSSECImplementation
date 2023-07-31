@@ -23,8 +23,8 @@ The DNS key of the zone is then signed by the private portion of the Key Signing
 
 > **Note:**
 > As a prerequisite for this hands-on we need a public hosted zone on Route 53.
-> It can be any name of your choice. I registered a domain via Route 53 and have been using the public hosted zone that gets created as part of the process.
-> For every hosted zone we maintain in our AWS account, AWS charges $.50 per hosted zone per month.
+> It can be any name of your choice. When you register a doman using Route 53, a public hosted zone is automatically created as part of the process. [This link to AWS documentation](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html) has detailed steps that can be followed for registering a doman with Route 53.
+> For every hosted zone we maintain in our AWS account, AWS charges $.50 per hosted zone per month. 
 
 ## Steps:
 1. Create a Stack with one click deployment which will provision a corporate website. Create a DNS record in the public hosted zone for the domain. [Details](#Step1)
