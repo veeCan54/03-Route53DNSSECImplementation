@@ -1,41 +1,53 @@
 # Route 53 DNSSec Implementation.   
-**Objectives:**  
+# Objectives:
 1. Understand and emphasise the role DNSSec plays and how to implement it in Route 53. 
 2. Establish a chain of trust from the parent TLD zone to the domain zone.
 3. Examine records returned before and after enabling DNSSec. Observe the signed records returned after enabling DNSSec.
 
-First let us examine some core concepts and players in DNS.  
+# Core concepts and players in DNS:
 When a client tries to connect to a website or load an application, Domain Name System is what helps the client determine the IP address of the website/application. This happens via what is called 'Walking the DNS tree' where the DNS resolver on the client's computer performs multiple queries until it gets the IP address of the website.  
-First the local cache is checked for the IP address and if it is not found, the ISP cache is checked. If it is still not found the DNS Root domain is queried. These are 13 IP addresses that the browser and all operating systems are aware of. The Root then returns the name server of the Top Level Domain of the queried website (.com, .org, .net) and the DNS resolver queries the TLD servers. The TLD server returns the record for the server that hosts the zone file of the requested domain, which is then queried and the server responds with the IP address. This IP address is returned to the user.  
-As a result of the DNS query, the user gets either a cached or non authoritative response, or a response from an actual server that is authoritative for that domain. 
+1. First the local cache is checked for the IP address and if it is not found, the ISP cache is checked.
+2. If it is still not found the ISP does a query on our behalf, where the DNS Root domain is queried. These are 13 IP addresses that the browser and all operating systems are aware of.
+3. The Root then returns the name server of the Top Level Domain of the queried website (.com, .org, .net) and the DNS resolver queries the TLD servers.
+4. The TLD server returns the record for the server that hosts the zone file of the requested domain, which is then queried and the server responds with the IP address. This IP address is returned to the user's application.
+5. As a result of the DNS query, the user gets either a cached or non authoritative response, or a response from an actual server that is authoritative for that domain. 
 
-**DNSSec ensures 2 things, which are critical for security**. 
-1. **Authenticity** of the record. It helps validate that the record returned is authentic for that domain. 
-2. **Integrity** of the record. It ensures that the record has not been altered or tampered with. 
-Without DNSSec, a bad actor could poison the DNS record which could result in the client being redirected to a malicious website.  In an organization it could cause user traffic to be hijacked.<br>
-DNSSec achieves this by a **cryptographic signing process** where it digitally signs the record using a key.  The resolver/client can validate it to ensure the authenticity of the record. This process follows a chain of trust where the zone for that domain is trusted by the TLD zone which in turn is trusted by the Root Zone. The Root Zone is implicitly and universally trusted. The Root Key Signing ceremony happens at regular intervals where security officers perform the signing in an extremely secure, supervised and audited process. This ensures the security of the keys generated in the Root Zone which are used to digitally sign the keys of the TLDs which in turn sign the keys of the hosted zone. 
+**DNS by itself is not secure. DNSSec enhances the security of DNS by ensuring 2 important things, which are critical for security**. 
+1. **Authenticity** of the record. With DNSSec, it is possible to validate that the record returned is authentic for that domain. 
+2. **Integrity** of the record. DNSSec ensures that the record has not been altered or tampered with.
+
+Without DNSSec, a bad actor could poison the DNS record which could result in the client being redirected to a malicious website.
+In an organization it could cause user traffic to be hijacked.  
+
+DNSSec achieves this by a **cryptographic signing process** where it digitally signs the record using a key. The resolver/client can validate it to ensure the authenticity of the record. This process follows a chain of trust where the zone for that domain is trusted by the TLD zone which in turn is trusted by the Root Zone.  
+The Root Zone is implicitly and universally trusted. The Root Key Signing ceremony happens at regular intervals where security officers perform the signing in an extremely secure, supervised and audited process. This ensures the security of the keys generated in the Root Zone which are used to digitally sign the keys of the TLDs which in turn sign the keys of the hosted zone. 
 
 **Keys involved in DNSSec:**  
-Let's start from the individual hosted zone. 
-Every DNS zone has a Zone signing key which has a public and corresponding private portion. When DNSSec is enabled, DNS clients get an RRSIG record in addition to the DNS record which they can use to validate the authenticity of the DNS Record. This RRSIG record is a digitally signed DNS record, signed using the private portion of the Zone key.  
-The public portion of the Zone signing key is stored in the DNS Key record of the zone, and the private portion is saved separate from the zone by the zone administrator. The DNS Key stores the public key of the Zone key. DNS Key also stores another important public key, the **Key Signing Key**.  
-The DNS key of the zone is then signed by the private portion of the Key Signing key to create the RRSIG of the DNS key record. Using this record, clients can validate if the DNS key of the zone itself is valid. Now to establish a chain of trust, the public part of the Key Signing key is provided to the parent TLD zone as a Delegated Signer (DS) record. This is then digitally signed by the Zone signing key of the TLD zone. The validity of the TLD Zone signing key can be ensured because it is trusted by the Root zone. The Root zone has a DS record of the TLD Zone signing key key which it digitally signs using it's Key Signing Key.  The Key Signing Key of the Root zone is generated during a securely audited Root Key Signing Ceremony. To be really specific, it is not the key generated during the ceremony but is derived from the secure key.
+Let's start from the individual hosted zone.  
+1. Every DNS zone has a Zone signing key which has a public and corresponding private portion.
+2. When DNSSec is enabled, DNS clients get an RRSIG record in addition to the DNS record which they can use to validate the authenticity of the DNS Record. This RRSIG record is a digitally signed DNS record, signed using the private portion of the Zone key.
+3. The public portion of the Zone signing key is stored in the DNS Key record of the zone, and the private portion is saved separate from the zone by the zone administrator.
+4. The DNS Key stores the public key of the Zone key. DNS Key also stores another important public key, the **Key Signing Key**.
+5. The DNS key of the zone is then signed by the private portion of the Key Signing key to create the RRSIG of the DNS key record. Using this record, clients can validate if the DNS key of the zone itself is valid.
+6. To establish a chain of trust, the public part of the Key Signing key is provided to the parent TLD zone as a Delegated Signer (DS) record. This is then digitally signed by the Zone signing key of the TLD zone.
+7. The validity of the TLD Zone signing key can be ensured because it is trusted by the Root zone.
+8. The Root zone has a DS record of the TLD Zone signing key which it digitally signs using it's Key Signing Key.
+9. The Key Signing Key of the Root zone is generated during a securely audited Root Key Signing Ceremony. To be really specific, it is not the key generated during the ceremony but is derived from the secure key. This is what makes the entire process secure and trustworthy.
 
 > **Note:**
 > As a prerequisite for this hands-on we need a public hosted zone on Route 53.
 > It can be any name of your choice. When you register a domain using Route 53, a public hosted zone is automatically created as part of the process. [This link to AWS documentation](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/domain-register.html) has detailed steps that can be followed for registering a doman with Route 53.
 > For every hosted zone we maintain in our AWS account, AWS charges $.50 per hosted zone per month. 
 
-## Steps:
+# Implementation steps:
 1. Create a Stack with one click deployment which will provision a corporate website. Create a DNS record in the public hosted zone for the domain. [Details](#Step1)
 2. Perform DNS query before enabling DNSSec in the zone for the domain. [Details](#Step2)
 3. Enable DNSSec via AWS admin console. [Details](#Step3)
 4. Establish a chain of trust from the TLD .net zone to our zone. [Details](#Step4)
 5. Perform DNS query after enabling DNSSec and observe the signed records returned. [Details](#Step5)
 6. Cleanup [Details](#Step6)
-7. Summary & Lessons learnt [Details](#summary)
+7. Summary [Details](#summary)
 
-# Implementation steps:
 # Step1:<a name="Step1"></a>  
 Create the VPC using the Cloudformation Template [here](https://github.com/veeCan54/03-Route53DNSSECImplementation/blob/main/files/01-SingleCustomVPCWithPublicSubnet.yaml).  
 
